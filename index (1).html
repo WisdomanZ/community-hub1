@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Community Hub</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,400&family=Lato:wght@300;400;700&display=swap" rel="stylesheet"/>
+<style>
+  :root{--bg:#0f0e17;--bg2:#1a1a2e;--bg3:#16213e;--gold:#F0A500;--red:#FF6B6B;--text:#fffffe;--muted:#a7a9be;--border:rgba(255,255,255,0.09);}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{background:var(--bg);color:var(--text);font-family:'Lato',sans-serif;min-height:100vh;}
+  h1,h2,h3{font-family:'Playfair Display',serif;}
+  @keyframes fadeUp{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:translateY(0)}}
+  @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+  @keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.6}}
+
+  /* AUTH */
+  #auth-screen{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;background:radial-gradient(ellipse at 30% 20%,rgba(240,165,0,.07) 0%,transparent 60%),radial-gradient(ellipse at 80% 80%,rgba(255,107,107,.06) 0%,transparent 60%),linear-gradient(135deg,#0f0e17 0%,#1a1a2e 60%,#16213e 100%);}
+  .auth-card{background:rgba(255,255,255,.04);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.12);border-radius:24px;padding:48px 40px;max-width:440px;width:100%;text-align:center;box-shadow:0 32px 80px rgba(0,0,0,.5);animation:fadeUp .6s ease;}
+  .auth-star{font-size:52px;margin-bottom:14px;display:block;animation:spin 20s linear infinite;}
+  .auth-card h1{font-size:34px;margin-bottom:8px;letter-spacing:-.5px;}
+  .auth-card>p{color:var(--muted);font-size:15px;line-height:1.6;margin-bottom:24px;}
+  .auth-tabs{display:flex;border-radius:12px;background:rgba(255,255,255,.05);padding:4px;margin-bottom:22px;gap:4px;}
+  .auth-tab{flex:1;padding:9px;border:none;border-radius:9px;background:none;color:var(--muted);font-family:'Lato',sans-serif;font-size:14px;cursor:pointer;font-weight:700;transition:all .2s;}
+  .auth-tab.active{background:rgba(255,255,255,.1);color:var(--text);}
+  .field{margin-bottom:10px;}
+  .field label{display:block;text-align:left;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:6px;}
+  .pw-wrap{position:relative;}
+  .show-pw{position:absolute;right:14px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--muted);cursor:pointer;font-size:16px;padding:0;}
+  input,textarea{width:100%;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.15);border-radius:12px;padding:13px 16px;color:var(--text);font-size:15px;font-family:'Lato',sans-serif;outline:none;transition:border-color .2s;}
+  input:focus,textarea:focus{border-color:var(--gold);}
+  .error{color:var(--red);font-size:13px;margin-bottom:8px;display:block;min-height:18px;text-align:left;}
+  .btn-primary{width:100%;background:linear-gradient(135deg,var(--gold),var(--red));border:none;border-radius:12px;padding:14px;color:#fff;font-size:16px;font-weight:700;cursor:pointer;font-family:'Lato',sans-serif;letter-spacing:.5px;transition:opacity .2s,transform .1s;margin-top:4px;}
+  .btn-primary:hover{opacity:.9;transform:translateY(-1px);}
+  .btn-primary:active{transform:translateY(0);}
+  .verse-preview{background:rgba(240,165,0,.07);border:1px solid rgba(240,165,0,.18);border-radius:14px;padding:18px;margin-bottom:20px;text-align:left;}
+  .vp-label{color:var(--gold);font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;margin-bottom:8px;}
+  .verse-preview em{color:var(--text);font-size:13px;line-height:1.7;display:block;margin-bottom:6px;}
+  .verse-preview span{color:var(--muted);font-size:12px;}
+  .members-preview{margin-top:20px;}
+  .mp-label{color:var(--muted);font-size:12px;margin-bottom:10px;}
+  .chips{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;}
+  .chip{border-radius:20px;padding:4px 12px;font-size:13px;font-weight:700;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.3);}
+
+  /* APP */
+  #app{display:none;min-height:100vh;flex-direction:column;}
+  #app.visible{display:flex;}
+  .header{background:rgba(255,255,255,.025);border-bottom:1px solid var(--border);padding:14px 28px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;position:sticky;top:0;z-index:100;backdrop-filter:blur(12px);}
+  .header-left{display:flex;align-items:center;gap:12px;}
+  .header-star{font-size:26px;animation:pulse 3s ease-in-out infinite;}
+  .header-title{font-family:'Playfair Display',serif;font-size:20px;font-weight:700;}
+  .header-sub{font-size:12px;color:var(--muted);margin-top:2px;}
+  .header-right{display:flex;align-items:center;gap:10px;}
+  .avatar-stack{display:flex;}
+  .avatar{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.4);border:2px solid rgba(255,255,255,.1);margin-left:-6px;transition:transform .2s;cursor:default;}
+  .avatar:first-child{margin-left:0;}
+  .avatar:hover{transform:translateY(-3px);z-index:1;}
+  .me-badge{border-radius:20px;padding:6px 14px;font-size:13px;font-weight:700;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.3);}
+  .logout-btn{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:6px 12px;color:var(--muted);font-size:12px;cursor:pointer;font-family:'Lato',sans-serif;transition:background .15s;}
+  .logout-btn:hover{background:rgba(255,107,107,.15);color:var(--red);}
+  .verse-banner{background:linear-gradient(90deg,rgba(240,165,0,.1),rgba(255,107,107,.06));border-bottom:1px solid rgba(240,165,0,.18);padding:11px 28px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;}
+  .vb-label{color:var(--gold);font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;white-space:nowrap;}
+  .vb-text{color:var(--text);font-size:14px;font-style:italic;flex:1;min-width:200px;}
+  .vb-ref{color:var(--gold);font-size:13px;white-space:nowrap;font-weight:700;}
+  .tabs{display:flex;border-bottom:1px solid var(--border);background:rgba(255,255,255,.015);}
+  .tab-btn{padding:15px 28px;background:none;border:none;color:var(--muted);font-size:15px;cursor:pointer;font-family:'Lato',sans-serif;border-bottom:2px solid transparent;transition:all .2s;font-weight:400;}
+  .tab-btn.active{color:var(--gold);border-bottom-color:var(--gold);font-weight:700;}
+  .tab-btn:hover:not(.active){color:var(--text);}
+  .content{flex:1;max-width:940px;margin:0 auto;width:100%;padding:32px 20px;}
+  .panel{display:none;animation:fadeIn .3s ease;}
+  .panel.active{display:block;}
+
+  /* CALENDAR */
+  .cal-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;}
+  .cal-nav h2{font-size:26px;}
+  .nav-btn{background:rgba(255,255,255,.07);border:none;color:var(--text);border-radius:10px;padding:8px 18px;cursor:pointer;font-size:20px;transition:background .15s;}
+  .nav-btn:hover{background:rgba(255,255,255,.12);}
+  .day-headers{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:4px;}
+  .day-header{text-align:center;color:var(--muted);font-size:11px;font-weight:700;letter-spacing:1px;padding:8px 0;text-transform:uppercase;}
+  .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;}
+  .cal-cell{min-height:80px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:12px;padding:8px 6px;cursor:pointer;transition:background .15s,border-color .15s;position:relative;}
+  .cal-cell:hover{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.15);}
+  .cal-cell.today{background:rgba(240,165,0,.1);border-color:rgba(240,165,0,.35);}
+  .cal-cell.today:hover{background:rgba(240,165,0,.16);}
+  .cal-day-num{font-size:13px;margin-bottom:4px;}
+  .cal-cell.today .cal-day-num{color:var(--gold);font-weight:700;}
+  .cal-event-pill{border-radius:6px;padding:2px 5px;font-size:10px;font-weight:700;color:#fff;margin-bottom:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-shadow:0 1px 2px rgba(0,0,0,.3);}
+  .cal-more{font-size:10px;color:var(--muted);}
+
+  /* MONTH LIST */
+  .events-this-month{margin-top:36px;}
+  .section-title{font-size:11px;color:var(--muted);font-weight:700;letter-spacing:2px;text-transform:uppercase;margin-bottom:16px;}
+  .event-card{border-radius:12px;padding:14px 16px;display:flex;align-items:flex-start;gap:12px;margin-bottom:10px;border-left:4px solid;}
+  .event-card-body{flex:1;}
+  .event-card-top{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px;}
+  .event-title-txt{font-weight:700;font-size:15px;}
+  .event-author-badge{border-radius:20px;padding:2px 10px;font-size:11px;font-weight:700;color:#fff;}
+  .event-meta{color:var(--muted);font-size:13px;}
+  .event-desc-txt{color:#d4d4e0;font-size:13px;margin-top:6px;line-height:1.5;}
+  .delete-btn{background:none;border:none;color:var(--red);cursor:pointer;font-size:20px;padding:0;line-height:1;opacity:.7;transition:opacity .15s;flex-shrink:0;}
+  .delete-btn:hover{opacity:1;}
+
+  /* MODALS */
+  .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:500;align-items:center;justify-content:center;padding:20px;}
+  .modal-overlay.open{display:flex;}
+  .modal{background:var(--bg2);border:1px solid rgba(255,255,255,.14);border-radius:20px;padding:32px;max-width:500px;width:100%;box-shadow:0 32px 80px rgba(0,0,0,.6);animation:fadeUp .3s ease;max-height:92vh;overflow-y:auto;}
+  .modal h3{font-size:20px;margin-bottom:4px;}
+  .modal-sub{color:var(--muted);font-size:14px;margin-bottom:20px;}
+  .modal-btns{display:flex;gap:10px;margin-top:14px;}
+  .btn-cancel{flex:1;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:12px;color:var(--muted);cursor:pointer;font-family:'Lato',sans-serif;font-size:14px;transition:background .15s;}
+  .btn-cancel:hover{background:rgba(255,255,255,.1);}
+  .btn-confirm{flex:2;border:none;border-radius:10px;padding:12px;color:#fff;font-weight:700;cursor:pointer;font-family:'Lato',sans-serif;font-size:14px;transition:opacity .15s;}
+  .btn-confirm:hover{opacity:.88;}
+  .form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;}
+
+  /* DAY DETAIL */
+  .day-detail-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:8px;}
+  .day-detail-hdr h3{font-size:22px;}
+  .day-evt-count{background:rgba(255,255,255,.07);border-radius:20px;padding:4px 12px;font-size:12px;color:var(--muted);}
+  .day-evt-card{border-radius:14px;padding:18px;margin-bottom:12px;border-left:4px solid;position:relative;}
+  .day-evt-card:last-child{margin-bottom:0;}
+  .dec-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;}
+  .dec-title{font-size:18px;font-weight:700;font-family:'Playfair Display',serif;line-height:1.3;}
+  .dec-author-row{display:flex;align-items:center;gap:7px;margin-top:8px;}
+  .dec-av{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.3);flex-shrink:0;}
+  .dec-aname{font-size:13px;font-weight:700;}
+  .dec-time-row{display:flex;align-items:center;gap:7px;margin-top:10px;color:var(--muted);font-size:13px;padding:8px 10px;background:rgba(255,255,255,.05);border-radius:8px;}
+  .dec-desc{color:#d4d4e0;font-size:13px;margin-top:12px;line-height:1.6;padding-top:12px;border-top:1px solid rgba(255,255,255,.08);}
+  .dec-empty{text-align:center;padding:36px 0;color:var(--muted);}
+  .dec-empty-icon{font-size:42px;margin-bottom:12px;}
+  .add-on-day-btn{width:100%;background:rgba(255,255,255,.05);border:1px dashed rgba(255,255,255,.15);border-radius:12px;padding:13px;color:var(--muted);cursor:pointer;font-family:'Lato',sans-serif;font-size:14px;margin-top:16px;transition:all .2s;}
+  .add-on-day-btn:hover{background:rgba(255,255,255,.09);color:var(--text);border-color:rgba(255,255,255,.25);}
+
+  /* MESSAGES */
+  .msg-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;}
+  .msg-header h2{font-size:26px;}
+  .msg-count{color:var(--muted);font-size:14px;}
+  .messages-list{display:flex;flex-direction:column;gap:14px;margin-bottom:28px;}
+  .msg-empty{text-align:center;padding:48px 0;color:var(--muted);}
+  .msg-empty-icon{font-size:48px;margin-bottom:12px;}
+  .msg-card{border-radius:14px;padding:16px 18px;border-left:4px solid;animation:fadeIn .3s ease;}
+  .msg-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;flex-wrap:wrap;gap:8px;}
+  .msg-author{display:flex;align-items:center;gap:8px;}
+  .msg-av{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.3);flex-shrink:0;}
+  .msg-name{font-weight:700;font-size:14px;}
+  .msg-time-txt{color:var(--muted);font-size:12px;}
+  .msg-text{color:var(--text);font-size:15px;line-height:1.7;white-space:pre-wrap;word-break:break-word;}
+  .msg-input-box{border-radius:16px;padding:16px;position:sticky;bottom:16px;border:1px solid;}
+  .msg-input-who{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+  .msg-input-name{font-weight:700;font-size:14px;}
+  .msg-input-actions{display:flex;justify-content:space-between;align-items:center;margin-top:10px;}
+  .msg-hint{color:var(--muted);font-size:12px;}
+  .btn-post{border:none;border-radius:10px;padding:10px 24px;color:#fff;font-weight:700;cursor:pointer;font-family:'Lato',sans-serif;font-size:14px;transition:opacity .15s;}
+  .btn-post:hover{opacity:.85;}
+  textarea{resize:none;line-height:1.6;}
+
+  /* VERSES */
+  .verse-hero{background:linear-gradient(135deg,rgba(240,165,0,.13),rgba(255,107,107,.09));border:1px solid rgba(240,165,0,.28);border-radius:20px;padding:40px 36px;margin-bottom:40px;text-align:center;}
+  .verse-hero-icon{font-size:40px;margin-bottom:20px;display:block;}
+  .verse-hero blockquote{font-family:'Playfair Display',serif;font-size:22px;font-style:italic;color:var(--text);line-height:1.7;margin-bottom:20px;}
+  .verse-hero cite{color:var(--gold);font-size:16px;font-weight:700;font-style:normal;}
+  .verse-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;}
+  .verse-card{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:14px;padding:18px 16px;transition:background .15s;}
+  .verse-card.today-verse{background:rgba(240,165,0,.08);border-color:rgba(240,165,0,.28);}
+  .verse-card:hover{background:rgba(255,255,255,.06);}
+  .verse-card p{color:#d4d4e0;font-size:13px;font-style:italic;line-height:1.6;margin-bottom:10px;}
+  .verse-ref{color:var(--gold);font-size:12px;font-weight:700;}
+  .today-badge{background:var(--gold);color:#0f0e17;border-radius:20px;padding:2px 10px;font-size:10px;font-weight:700;margin-left:8px;}
+
+  @media(max-width:600px){
+    .header{padding:12px 16px;}.verse-banner{padding:10px 16px;}.tabs .tab-btn{padding:12px 14px;font-size:13px;}
+    .content{padding:20px 14px;}.auth-card{padding:32px 22px;}.cal-cell{min-height:58px;padding:5px 4px;}
+    .verse-hero{padding:28px 18px;}.verse-hero blockquote{font-size:17px;}.modal{padding:24px 18px;}
+    .form-row{grid-template-columns:1fr;}
+  }
+</style>
+</head>
+<body>
+
+<!-- ══ AUTH ══ -->
+<div id="auth-screen">
+  <div class="auth-card">
+    <span class="auth-star">✦</span>
+    <h1>Community Hub</h1>
+    <p>Sign in or create an account to access your shared space.</p>
+    <div class="verse-preview">
+      <div class="vp-label">✦ Verse of the Day</div>
+      <em id="auth-verse-text"></em>
+      <span id="auth-verse-ref"></span>
+    </div>
+    <div class="auth-tabs">
+      <button class="auth-tab active" id="tab-signin" onclick="switchTab('signin')">Sign In</button>
+      <button class="auth-tab" id="tab-register" onclick="switchTab('register')">Register</button>
+    </div>
+
+    <div id="signin-form">
+      <div class="field"><label>Username</label><input id="si-user" type="text" placeholder="Your username" autocomplete="username"/></div>
+      <div class="field"><label>Password</label>
+        <div class="pw-wrap"><input id="si-pw" type="password" placeholder="Your password" autocomplete="current-password"/><button class="show-pw" onclick="togglePw('si-pw',this)">👁</button></div>
+      </div>
+      <span class="error" id="si-err"></span>
+      <button class="btn-primary" onclick="doSignIn()">Sign In →</button>
+    </div>
+
+    <div id="reg-form" style="display:none">
+      <div class="field"><label>Display Name</label><input id="rg-name" type="text" placeholder="Name shown to others" maxlength="30"/></div>
+      <div class="field"><label>Username</label><input id="rg-user" type="text" placeholder="letters, numbers, _ only" maxlength="20" autocomplete="username"/></div>
+      <div class="field"><label>Password</label>
+        <div class="pw-wrap"><input id="rg-pw" type="password" placeholder="At least 4 characters" autocomplete="new-password"/><button class="show-pw" onclick="togglePw('rg-pw',this)">👁</button></div>
+      </div>
+      <div class="field"><label>Confirm Password</label>
+        <div class="pw-wrap"><input id="rg-pw2" type="password" placeholder="Repeat password" autocomplete="new-password"/><button class="show-pw" onclick="togglePw('rg-pw2',this)">👁</button></div>
+      </div>
+      <span class="error" id="rg-err"></span>
+      <button class="btn-primary" onclick="doRegister()">Create Account →</button>
+    </div>
+
+    <div class="members-preview" id="members-preview" style="display:none">
+      <div class="mp-label">Members already here:</div>
+      <div class="chips" id="members-chips"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ APP ══ -->
+<div id="app">
+  <div class="header">
+    <div class="header-left">
+      <div class="header-star">✦</div>
+      <div><div class="header-title">Community Hub</div><div class="header-sub" id="header-sub"></div></div>
+    </div>
+    <div class="header-right">
+      <div class="avatar-stack" id="avatar-stack"></div>
+      <div class="me-badge" id="me-badge"></div>
+      <button class="logout-btn" onclick="doLogout()">Sign out</button>
+    </div>
+  </div>
+  <div class="verse-banner">
+    <span class="vb-label">✦ Daily Verse</span>
+    <span class="vb-text" id="banner-verse"></span>
+    <span class="vb-ref" id="banner-ref"></span>
+  </div>
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="calendar">📅 Calendar</button>
+    <button class="tab-btn" data-tab="messages">💬 Messages</button>
+    <button class="tab-btn" data-tab="verses">✦ Verses</button>
+  </div>
+  <div class="content">
+    <!-- CALENDAR -->
+    <div class="panel active" id="panel-calendar">
+      <div class="cal-nav">
+        <button class="nav-btn" id="prev-mo">‹</button>
+        <h2 id="cal-label"></h2>
+        <button class="nav-btn" id="next-mo">›</button>
+      </div>
+      <div class="day-headers">
+        <div class="day-header">Sun</div><div class="day-header">Mon</div><div class="day-header">Tue</div>
+        <div class="day-header">Wed</div><div class="day-header">Thu</div><div class="day-header">Fri</div><div class="day-header">Sat</div>
+      </div>
+      <div class="cal-grid" id="cal-grid"></div>
+      <div id="month-list-wrap" style="display:none;margin-top:36px">
+        <div class="section-title">All Events This Month</div>
+        <div id="month-list"></div>
+      </div>
+    </div>
+    <!-- MESSAGES -->
+    <div class="panel" id="panel-messages">
+      <div class="msg-header"><h2>Community Board</h2><span class="msg-count" id="msg-count">0 messages</span></div>
+      <div class="messages-list" id="messages-list"></div>
+      <div class="msg-input-box" id="msg-input-box">
+        <div class="msg-input-who"><div class="msg-av" id="my-av"></div><span class="msg-input-name" id="my-name-lbl"></span></div>
+        <textarea id="msg-ta" rows="3" placeholder="Share something with the community…"></textarea>
+        <div class="msg-input-actions">
+          <span class="msg-hint">Ctrl+Enter to send</span>
+          <button class="btn-post" id="msg-post-btn">Post →</button>
+        </div>
+      </div>
+    </div>
+    <!-- VERSES -->
+    <div class="panel" id="panel-verses">
+      <div style="margin-bottom:32px"><h2 style="font-size:26px;margin-bottom:6px">Verse of the Day</h2><p style="color:var(--muted);font-size:14px" id="verse-date-lbl"></p></div>
+      <div class="verse-hero"><span class="verse-hero-icon">✦</span><blockquote id="hero-vtext"></blockquote><cite id="hero-vref"></cite></div>
+      <div class="section-title">Scripture Library</div>
+      <div class="verse-grid" id="verse-grid"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ DAY DETAIL MODAL ══ -->
+<div class="modal-overlay" id="day-modal">
+  <div class="modal" style="max-width:540px">
+    <div class="day-detail-hdr">
+      <h3 id="day-modal-title"></h3>
+      <span class="day-evt-count" id="day-modal-count"></span>
+    </div>
+    <div id="day-modal-body"></div>
+    <button class="add-on-day-btn" id="day-add-btn">＋ Add Event on This Day</button>
+    <div class="modal-btns"><button class="btn-cancel" onclick="closeDayModal()">Close</button></div>
+  </div>
+</div>
+
+<!-- ══ ADD EVENT MODAL ══ -->
+<div class="modal-overlay" id="event-modal">
+  <div class="modal">
+    <h3>Add Event</h3>
+    <p class="modal-sub" id="evt-modal-date"></p>
+    <div class="field"><label>Event Title *</label><input id="evt-title" type="text" placeholder="What's the event?" maxlength="80"/></div>
+    <div class="form-row">
+      <div class="field"><label>Start Time</label><input id="evt-start" type="time"/></div>
+      <div class="field"><label>End Time</label><input id="evt-end" type="time"/></div>
+    </div>
+    <div class="field"><label>Description (optional)</label><textarea id="evt-desc" rows="3" placeholder="Add details…" maxlength="400"></textarea></div>
+    <span class="error" id="evt-err"></span>
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="closeEvtModal()">Cancel</button>
+      <button class="btn-confirm" id="evt-confirm-btn" onclick="confirmAddEvent()">Add Event</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ─── DATA ──────────────────────────────────────────────────────
+const COLORS=[
+  {bg:"#FF6B6B"},{bg:"#4ECDC4"},{bg:"#45B7D1"},{bg:"#96CEB4"},
+  {bg:"#F0A500"},{bg:"#DDA0DD"},{bg:"#74B9FF"},{bg:"#A29BFE"},
+  {bg:"#FD79A8"},{bg:"#55EFC4"},
+];
+const VERSES=[
+  {text:"I can do all things through Christ who strengthens me.",ref:"Philippians 4:13"},
+  {text:"For I know the plans I have for you, declares the Lord, plans to prosper you and not to harm you, plans to give you hope and a future.",ref:"Jeremiah 29:11"},
+  {text:"Trust in the Lord with all your heart and lean not on your own understanding.",ref:"Proverbs 3:5"},
+  {text:"The Lord is my shepherd; I shall not want.",ref:"Psalm 23:1"},
+  {text:"Be strong and courageous. Do not be afraid; do not be discouraged, for the Lord your God will be with you wherever you go.",ref:"Joshua 1:9"},
+  {text:"And we know that in all things God works for the good of those who love him.",ref:"Romans 8:28"},
+  {text:"Come to me, all you who are weary and burdened, and I will give you rest.",ref:"Matthew 11:28"},
+  {text:"The Lord bless you and keep you; the Lord make his face shine on you and be gracious to you.",ref:"Numbers 6:24-25"},
+  {text:"Give thanks to the Lord, for he is good; his love endures forever.",ref:"Psalm 107:1"},
+  {text:"But those who hope in the Lord will renew their strength. They will soar on wings like eagles.",ref:"Isaiah 40:31"},
+  {text:"Love is patient, love is kind. It does not envy, it does not boast, it is not proud.",ref:"1 Corinthians 13:4"},
+  {text:"Your word is a lamp for my feet, a light on my path.",ref:"Psalm 119:105"},
+  {text:"For God so loved the world that he gave his one and only Son.",ref:"John 3:16"},
+  {text:"I have hidden your word in my heart that I might not sin against you.",ref:"Psalm 119:11"},
+  {text:"Do not conform to the pattern of this world, but be transformed by the renewing of your mind.",ref:"Romans 12:2"},
+  {text:"Cast all your anxiety on him because he cares for you.",ref:"1 Peter 5:7"},
+  {text:"Delight yourself in the Lord, and he will give you the desires of your heart.",ref:"Psalm 37:4"},
+  {text:"Ask and it will be given to you; seek and you will find; knock and the door will be opened to you.",ref:"Matthew 7:7"},
+  {text:"The peace of God, which transcends all understanding, will guard your hearts and your minds in Christ Jesus.",ref:"Philippians 4:7"},
+  {text:"In the beginning was the Word, and the Word was with God, and the Word was God.",ref:"John 1:1"},
+  {text:"For it is by grace you have been saved, through faith—and this is not from yourselves, it is the gift of God.",ref:"Ephesians 2:8"},
+  {text:"Create in me a pure heart, O God, and renew a steadfast spirit within me.",ref:"Psalm 51:10"},
+  {text:"Seek first his kingdom and his righteousness, and all these things will be given to you as well.",ref:"Matthew 6:33"},
+  {text:"No weapon forged against you will prevail.",ref:"Isaiah 54:17"},
+  {text:"The Lord is close to the brokenhearted and saves those who are crushed in spirit.",ref:"Psalm 34:18"},
+  {text:"Let everything that has breath praise the Lord.",ref:"Psalm 150:6"},
+  {text:"With God all things are possible.",ref:"Matthew 19:26"},
+  {text:"He heals the brokenhearted and binds up their wounds.",ref:"Psalm 147:3"},
+  {text:"Now faith is confidence in what we hope for and assurance about what we do not see.",ref:"Hebrews 11:1"},
+  {text:"Rejoice in the Lord always. I will say it again: Rejoice!",ref:"Philippians 4:4"},
+];
+const MN=["January","February","March","April","May","June","July","August","September","October","November","December"];
+
+// ─── STATE ─────────────────────────────────────────────────────
+let me=null,members=[],events=[],messages=[],calY,calM,pendingDay=null;
+
+// ─── STORAGE ───────────────────────────────────────────────────
+const S={
+  get:(k)=>{try{const v=localStorage.getItem('hub_'+k);return v?JSON.parse(v):null;}catch{return null;}},
+  set:(k,v)=>{try{localStorage.setItem('hub_'+k,JSON.stringify(v));}catch{}}
+};
+
+// ─── UTILS ─────────────────────────────────────────────────────
+function gid(){return Math.random().toString(36).slice(2)+Date.now().toString(36);}
+function pad(n){return String(n).padStart(2,'0');}
+function ds(y,m,d){return `${y}-${pad(m+1)}-${pad(d)}`;}
+function dim(y,m){return new Date(y,m+1,0).getDate();}
+function fd(y,m){return new Date(y,m,1).getDay();}
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function todayVerse(){return VERSES[Math.floor((new Date()-(new Date(new Date().getFullYear(),0,0)))/86400000)%VERSES.length];}
+function fmt12(t){if(!t)return '';const[h,m]=t.split(':').map(Number);return `${h%12||12}:${pad(m)} ${h>=12?'PM':'AM'}`;}
+function fmtRange(s,e){if(!s&&!e)return '';if(s&&e)return `${fmt12(s)} – ${fmt12(e)}`;if(s)return `Starts ${fmt12(s)}`;return `Ends ${fmt12(e)}`;}
+function fmtMsgTime(iso){const d=new Date(iso);return d.toLocaleDateString(undefined,{month:'short',day:'numeric'})+' · '+d.toLocaleTimeString(undefined,{hour:'2-digit',minute:'2-digit'});}
+function hashPw(p){let h=0;for(let i=0;i<p.length;i++){h=((h<<5)-h)+p.charCodeAt(i);h|=0;}return String(h);}
+
+// ─── INIT ──────────────────────────────────────────────────────
+function init(){
+  members=S.get('members')||[];
+  events=S.get('events')||[];
+  messages=S.get('messages')||[];
+  const v=todayVerse();
+  document.getElementById('auth-verse-text').textContent=`"${v.text}"`;
+  document.getElementById('auth-verse-ref').textContent=`— ${v.ref}`;
+  renderMemberChips();
+  const sess=S.get('session');
+  if(sess){const u=members.find(m=>m.username===sess.username);if(u){me=u;launchApp();return;}}
+  document.getElementById('auth-screen').style.display='flex';
+  const now=new Date();calY=now.getFullYear();calM=now.getMonth();
+}
+
+// ─── AUTH ──────────────────────────────────────────────────────
+function switchTab(t){
+  document.getElementById('signin-form').style.display=t==='signin'?'block':'none';
+  document.getElementById('reg-form').style.display=t==='register'?'block':'none';
+  document.getElementById('tab-signin').classList.toggle('active',t==='signin');
+  document.getElementById('tab-register').classList.toggle('active',t==='register');
+}
+function togglePw(id,btn){const el=document.getElementById(id);el.type=el.type==='password'?'text':'password';btn.textContent=el.type==='password'?'👁':'🙈';}
+
+function doSignIn(){
+  const u=document.getElementById('si-user').value.trim().toLowerCase();
+  const p=document.getElementById('si-pw').value;
+  const err=document.getElementById('si-err');
+  if(!u||!p){err.textContent='Please fill in all fields.';return;}
+  const user=members.find(m=>m.username===u);
+  if(!user||user.pwHash!==hashPw(p)){err.textContent='Incorrect username or password.';return;}
+  err.textContent='';me=user;S.set('session',{username:u});launchApp();
+}
+
+function doRegister(){
+  const name=document.getElementById('rg-name').value.trim();
+  const u=document.getElementById('rg-user').value.trim().toLowerCase();
+  const p=document.getElementById('rg-pw').value;
+  const p2=document.getElementById('rg-pw2').value;
+  const err=document.getElementById('rg-err');
+  if(!name||!u||!p){err.textContent='Please fill in all fields.';return;}
+  if(name.length<2){err.textContent='Display name too short.';return;}
+  if(u.length<3){err.textContent='Username must be at least 3 characters.';return;}
+  if(!/^[a-z0-9_]+$/.test(u)){err.textContent='Username: only letters, numbers, underscores.';return;}
+  if(p.length<4){err.textContent='Password must be at least 4 characters.';return;}
+  if(p!==p2){err.textContent='Passwords do not match.';return;}
+  if(members.find(m=>m.username===u)){err.textContent='Username already taken.';return;}
+  err.textContent='';
+  const used=members.map(m=>m.color.bg);
+  const avail=COLORS.filter(c=>!used.includes(c.bg));
+  const color=avail.length?avail[Math.floor(Math.random()*avail.length)]:COLORS[members.length%COLORS.length];
+  const user={name,username:u,pwHash:hashPw(p),color};
+  members.push(user);S.set('members',members);
+  me=user;S.set('session',{username:u});launchApp();
+}
+
+function doLogout(){
+  me=null;S.set('session',null);
+  document.getElementById('app').classList.remove('visible');
+  document.getElementById('auth-screen').style.display='flex';
+  ['si-user','si-pw'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('si-err').textContent='';
+  switchTab('signin');renderMemberChips();
+}
+
+function renderMemberChips(){
+  const wrap=document.getElementById('members-preview');
+  if(!members.length){wrap.style.display='none';return;}
+  wrap.style.display='block';
+  document.getElementById('members-chips').innerHTML=members.map(m=>`<span class="chip" style="background:${m.color.bg}">${esc(m.name)}</span>`).join('');
+}
+
+// ─── LAUNCH APP ────────────────────────────────────────────────
+function launchApp(){
+  document.getElementById('auth-screen').style.display='none';
+  document.getElementById('app').classList.add('visible');
+  const v=todayVerse();
+  document.getElementById('banner-verse').textContent=`"${v.text}"`;
+  document.getElementById('banner-ref').textContent=`— ${v.ref}`;
+  document.getElementById('header-sub').textContent=`Shared space · ${members.length} member${members.length!==1?'s':''}`;
+  const badge=document.getElementById('me-badge');badge.textContent=me.name;badge.style.background=me.color.bg;
+  document.getElementById('avatar-stack').innerHTML=
+    members.slice(0,6).map(m=>`<div class="avatar" style="background:${m.color.bg}" title="${esc(m.name)}">${m.name[0].toUpperCase()}</div>`).join('')+
+    (members.length>6?`<div class="avatar" style="background:rgba(255,255,255,.1);color:var(--muted);font-size:11px">+${members.length-6}</div>`:'');
+  const myAv=document.getElementById('my-av');myAv.textContent=me.name[0].toUpperCase();myAv.style.background=me.color.bg;
+  const nl=document.getElementById('my-name-lbl');nl.textContent=me.name;nl.style.color=me.color.bg;
+  const ib=document.getElementById('msg-input-box');ib.style.background='rgba(255,255,255,.04)';ib.style.borderColor=me.color.bg+'55';
+  document.getElementById('msg-post-btn').style.background=me.color.bg;
+  const now=new Date();calY=now.getFullYear();calM=now.getMonth();
+  setupTabs();setupMessages();setupVerses();renderCalendar();renderMessages();
+  document.getElementById('day-modal').addEventListener('click',e=>{if(e.target===e.currentTarget)closeDayModal();});
+  document.getElementById('event-modal').addEventListener('click',e=>{if(e.target===e.currentTarget)closeEvtModal();});
+  document.getElementById('prev-mo').onclick=()=>{calM--;if(calM<0){calM=11;calY--;}renderCalendar();};
+  document.getElementById('next-mo').onclick=()=>{calM++;if(calM>11){calM=0;calY++;}renderCalendar();};
+}
+
+// ─── TABS ──────────────────────────────────────────────────────
+function setupTabs(){
+  document.querySelectorAll('.tab-btn').forEach(b=>{
+    b.onclick=()=>{
+      document.querySelectorAll('.tab-btn').forEach(x=>x.classList.remove('active'));
+      document.querySelectorAll('.panel').forEach(x=>x.classList.remove('active'));
+      b.classList.add('active');
+      document.getElementById('panel-'+b.dataset.tab).classList.add('active');
+    };
+  });
+}
+
+// ─── CALENDAR ──────────────────────────────────────────────────
+function renderCalendar(){
+  document.getElementById('cal-label').textContent=`${MN[calM]} ${calY}`;
+  const grid=document.getElementById('cal-grid');grid.innerHTML='';
+  const today=new Date(),fdv=fd(calY,calM),dimv=dim(calY,calM);
+  for(let i=0;i<fdv;i++) grid.appendChild(document.createElement('div'));
+  for(let d=1;d<=dimv;d++){
+    const cell=document.createElement('div');cell.className='cal-cell';
+    const isToday=today.getDate()===d&&today.getMonth()===calM&&today.getFullYear()===calY;
+    if(isToday) cell.classList.add('today');
+    const dayNum=document.createElement('div');dayNum.className='cal-day-num';dayNum.textContent=d;cell.appendChild(dayNum);
+    const dayEvts=events.filter(e=>e.date===ds(calY,calM,d));
+    dayEvts.slice(0,2).forEach(ev=>{
+      const pill=document.createElement('div');pill.className='cal-event-pill';pill.style.background=ev.color.bg;pill.textContent=ev.title;cell.appendChild(pill);
+    });
+    if(dayEvts.length>2){const more=document.createElement('div');more.className='cal-more';more.textContent=`+${dayEvts.length-2} more`;cell.appendChild(more);}
+    cell.addEventListener('click',()=>openDayModal(d));
+    grid.appendChild(cell);
+  }
+  renderMonthList();
+}
+
+// ─── DAY DETAIL MODAL ──────────────────────────────────────────
+function openDayModal(day){
+  pendingDay=day;
+  const dStr=ds(calY,calM,day);
+  const dayEvts=events.filter(e=>e.date===dStr).sort((a,b)=>{
+    if(!a.startTime&&!b.startTime) return 0;
+    if(!a.startTime) return 1;if(!b.startTime) return -1;
+    return a.startTime.localeCompare(b.startTime);
+  });
+  const isToday=new Date().getDate()===day&&new Date().getMonth()===calM&&new Date().getFullYear()===calY;
+  document.getElementById('day-modal-title').textContent=`${MN[calM]} ${day}${isToday?', Today':''}`;
+  document.getElementById('day-modal-count').textContent=`${dayEvts.length} event${dayEvts.length!==1?'s':''}`;
+  document.getElementById('day-add-btn').onclick=()=>{closeDayModal();openEvtModal(day);};
+  const body=document.getElementById('day-modal-body');
+  if(!dayEvts.length){
+    body.innerHTML=`<div class="dec-empty"><div class="dec-empty-icon">📭</div><p>No events on this day yet.</p><p style="font-size:13px;margin-top:6px;color:var(--muted)">Click the button below to add one.</p></div>`;
+  } else {
+    body.innerHTML=dayEvts.map(ev=>`
+      <div class="day-evt-card" style="background:${ev.color.bg}15;border-left-color:${ev.color.bg};border:1px solid ${ev.color.bg}33;border-left-width:4px;">
+        <div class="dec-head">
+          <div>
+            <div class="dec-title">${esc(ev.title)}</div>
+            <div class="dec-author-row">
+              <div class="dec-av" style="background:${ev.color.bg}">${ev.author[0].toUpperCase()}</div>
+              <span class="dec-aname" style="color:${ev.color.bg}">Added by ${esc(ev.author)}</span>
+            </div>
+          </div>
+          ${ev.author===me.name?`<button class="delete-btn" style="font-size:22px;margin-top:4px" onclick="delEvtFromDay('${ev.id}',${day})">×</button>`:''}
+        </div>
+        ${(ev.startTime||ev.endTime)?`<div class="dec-time-row">🕐 <strong>${fmtRange(ev.startTime,ev.endTime)}</strong></div>`:''}
+        ${ev.desc?`<div class="dec-desc">${esc(ev.desc)}</div>`:''}
+      </div>
+    `).join('');
+  }
+  document.getElementById('day-modal').classList.add('open');
+}
+function closeDayModal(){document.getElementById('day-modal').classList.remove('open');}
+function delEvtFromDay(id,day){events=events.filter(e=>e.id!==id);S.set('events',events);renderCalendar();openDayModal(day);}
+
+// ─── ADD EVENT MODAL ───────────────────────────────────────────
+function openEvtModal(day){
+  pendingDay=day;
+  document.getElementById('evt-modal-date').textContent=`${MN[calM]} ${day}, ${calY}`;
+  ['evt-title','evt-desc'].forEach(id=>document.getElementById(id).value='');
+  ['evt-start','evt-end'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('evt-err').textContent='';
+  document.getElementById('evt-confirm-btn').style.background=me.color.bg;
+  document.getElementById('event-modal').classList.add('open');
+  setTimeout(()=>document.getElementById('evt-title').focus(),100);
+}
+function closeEvtModal(){document.getElementById('event-modal').classList.remove('open');}
+function confirmAddEvent(){
+  const title=document.getElementById('evt-title').value.trim();
+  const start=document.getElementById('evt-start').value;
+  const end=document.getElementById('evt-end').value;
+  const errEl=document.getElementById('evt-err');
+  if(!title){errEl.textContent='Event title is required.';document.getElementById('evt-title').focus();return;}
+  if(start&&end&&end<=start){errEl.textContent='End time must be after start time.';return;}
+  errEl.textContent='';
+  events.push({id:gid(),date:ds(calY,calM,pendingDay),title,startTime:start,endTime:end,desc:document.getElementById('evt-desc').value.trim(),author:me.name,color:me.color,createdAt:new Date().toISOString()});
+  S.set('events',events);closeEvtModal();renderCalendar();openDayModal(pendingDay);
+}
+
+function renderMonthList(){
+  const wrap=document.getElementById('month-list-wrap');
+  const list=document.getElementById('month-list');
+  const pfx=`${calY}-${pad(calM+1)}`;
+  const mo=events.filter(e=>e.date.startsWith(pfx)).sort((a,b)=>a.date.localeCompare(b.date)||((a.startTime||'99').localeCompare(b.startTime||'99')));
+  if(!mo.length){wrap.style.display='none';return;}
+  wrap.style.display='block';
+  list.innerHTML=mo.map(ev=>`
+    <div class="event-card" style="background:${ev.color.bg}14;border-left-color:${ev.color.bg};border-color:${ev.color.bg}33">
+      <div class="event-card-body">
+        <div class="event-card-top">
+          <span class="event-title-txt">${esc(ev.title)}</span>
+          <span class="event-author-badge" style="background:${ev.color.bg}">${esc(ev.author)}</span>
+        </div>
+        <div class="event-meta">${MN[parseInt(ev.date.split('-')[1])-1]} ${parseInt(ev.date.split('-')[2])}${(ev.startTime||ev.endTime)?'  ·  '+fmtRange(ev.startTime,ev.endTime):''}</div>
+        ${ev.desc?`<div class="event-desc-txt">${esc(ev.desc)}</div>`:''}
+      </div>
+      ${ev.author===me.name?`<button class="delete-btn" onclick="delEvt('${ev.id}')">×</button>`:''}
+    </div>
+  `).join('');
+}
+function delEvt(id){events=events.filter(e=>e.id!==id);S.set('events',events);renderCalendar();}
+
+// ─── MESSAGES ──────────────────────────────────────────────────
+function setupMessages(){
+  document.getElementById('msg-post-btn').onclick=sendMsg;
+  document.getElementById('msg-ta').addEventListener('keydown',e=>{if(e.key==='Enter'&&(e.ctrlKey||e.metaKey))sendMsg();});
+}
+function sendMsg(){
+  const text=document.getElementById('msg-ta').value.trim();if(!text)return;
+  messages.push({id:gid(),author:me.name,color:me.color,text,time:new Date().toISOString()});
+  S.set('messages',messages);document.getElementById('msg-ta').value='';renderMessages();
+  setTimeout(()=>{const l=document.getElementById('messages-list');l.lastElementChild&&l.lastElementChild.scrollIntoView({behavior:'smooth'});},60);
+}
+function renderMessages(){
+  const list=document.getElementById('messages-list');
+  document.getElementById('msg-count').textContent=`${messages.length} message${messages.length!==1?'s':''}`;
+  if(!messages.length){list.innerHTML=`<div class="msg-empty"><div class="msg-empty-icon">💬</div><div>No messages yet. Be the first to share!</div></div>`;return;}
+  list.innerHTML=messages.map(msg=>`
+    <div class="msg-card" style="background:${msg.color.bg}12;border-left-color:${msg.color.bg};border-color:${msg.color.bg}33">
+      <div class="msg-top">
+        <div class="msg-author">
+          <div class="msg-av" style="background:${msg.color.bg}">${msg.author[0].toUpperCase()}</div>
+          <span class="msg-name" style="color:${msg.color.bg}">${esc(msg.author)}</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px">
+          <span class="msg-time-txt">${fmtMsgTime(msg.time)}</span>
+          ${msg.author===me.name?`<button class="delete-btn" onclick="delMsg('${msg.id}')">×</button>`:''}
+        </div>
+      </div>
+      <div class="msg-text">${esc(msg.text)}</div>
+    </div>
+  `).join('');
+}
+function delMsg(id){messages=messages.filter(m=>m.id!==id);S.set('messages',messages);renderMessages();}
+
+// ─── VERSES ────────────────────────────────────────────────────
+function setupVerses(){
+  const v=todayVerse();const ti=VERSES.indexOf(v);
+  document.getElementById('verse-date-lbl').textContent=new Date().toLocaleDateString(undefined,{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+  document.getElementById('hero-vtext').textContent=`"${v.text}"`;
+  document.getElementById('hero-vref').textContent=`— ${v.ref}`;
+  document.getElementById('verse-grid').innerHTML=VERSES.map((vv,i)=>`
+    <div class="verse-card${i===ti?' today-verse':''}">
+      <p>"${esc(vv.text)}"</p>
+      <span class="verse-ref">${esc(vv.ref)}${i===ti?'<span class="today-badge">TODAY</span>':''}</span>
+    </div>
+  `).join('');
+}
+
+// ─── GLOBALS ───────────────────────────────────────────────────
+window.switchTab=switchTab;window.togglePw=togglePw;window.doSignIn=doSignIn;window.doRegister=doRegister;window.doLogout=doLogout;
+window.closeDayModal=closeDayModal;window.closeEvtModal=closeEvtModal;window.confirmAddEvent=confirmAddEvent;
+window.delEvtFromDay=delEvtFromDay;window.delEvt=delEvt;window.delMsg=delMsg;
+
+init();
+</script>
+</body>
+</html>
